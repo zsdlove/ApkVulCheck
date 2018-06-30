@@ -2,6 +2,7 @@ import os
 import sys
 import xml.dom.minidom
 import re
+import zipfile
 #resultinfo={"xss":[item1,item2]},{}}  item={"path":"path","line":"line","linecode":"linecode"}
 resultinfo={}
 def banner_bigin():
@@ -24,7 +25,7 @@ def banner_finished():
 	print(" "*84+"#"+"#"*15)
 def getFeatureFromXml():
 	vulhub={}
-	dom = xml.dom.minidom.parse('conf.xml')
+	dom = xml.dom.minidom.parse('lib/conf.xml')
 	root = dom.documentElement
 	nodelist=root.childNodes
 	for node in nodelist:
@@ -49,10 +50,16 @@ def getFeatureFromXml():
 				else:
 					pass
 	return vulhub
-def FindRefFromSingleClass(path):
-	resultfile=open("result.html",'w+')
-	resultfile2=open("result.txt",'w+')
+def VulScanEngine(path,apkfilename):
+	apkfilename=os.getcwd()+'//report//'+apkfilename
+	os.makedirs(apkfilename)
+	resultfile=open(apkfilename+"//_result.html",'w+')
+	resultfile2=open(apkfilename+"//_result.txt",'w+')
 	features=getFeatureFromXml()
+	print("开始进dex反编译")
+	decompiledex()
+	print("dex反编译成功")
+	print("开始进行安卓漏洞静态扫描")
 	for root,dirs,files,in os.walk(path):
 			for file in files:
 				if os.path.splitext(file)[1] == '.smali':
@@ -107,15 +114,68 @@ def FindRefFromSingleClass(path):
 			resultfile.write("<p>路径："+vulitem["path"]+"</p>")
 			resultfile.write("</div>")
 	banner_finished()
+	input("按任意键结束");
+#
+#获得apk文件名
+#
+def getapkFileName():
+	apkfilenamelist=[]
+	for root,dirs,files,in os.walk('workspace'):
+			for file in files:
+				if os.path.splitext(file)[1] == '.apk':
+					filepath=os.path.join(root,file)
+					filepath=filepath.split('.')[0].split('\\')[-1]
+					apkfilenamelist.append(filepath)
+	return apkfilenamelist
+#
+#对classes.dex文件进行反编译，获得smali文件
+#
 def decompiledex():
 	#将classes.dex文件放到workspace目录下
 	#注意dex文件要命名为classes.dex
-	os.system("java -jar baksmali.jar -o workspace/smali workspace/classes.dex")
+	path=os.getcwd()+'//workspace//result//'
+	apkfileNames=getapkFileName()
+	getdexfile()#处理apk文件
+	for apkfileName in apkfileNames:
+		os.system("java -jar lib/baksmali.jar -o workspace/result/"+apkfileName+" workspace/result/"+apkfileName+"/classes.dex")
+#
+#从获得apk文件路径
+#
+def getApkFilePath():
+	apkfilelist=[]
+	for root,dirs,files,in os.walk('workspace'):
+			for file in files:
+				if os.path.splitext(file)[1] == '.apk':
+					filepath=os.path.join(root,file)
+					apkfilelist.append(filepath)
+	return apkfilelist
+#
+#获得dex文件
+#
+def getdexfile():
+	apkfilelist=getApkFilePath()
+	print('py文件目录'+os.getcwd())
+	for apkfilepath in apkfilelist:
+		try:
+			zipfiles=zipfile.ZipFile(apkfilepath)
+			a=zipfiles.read('classes.dex')
+			if a !='':
+				apkfileName=apkfilepath.split('.')[0].split('\\')[-1]
+				print('apk文件名'+apkfileName)
+				apkdir=os.getcwd()+'\\workspace\\result\\'+apkfileName
+				print(apkdir)
+				if not os.path.exists(apkdir):
+					os.makedirs(apkdir)
+				dexfile=open('workspace/result/'+apkfileName+'/classes.dex','wb')
+				dexfile.write(a)
+				print('获取classes.dex文件成功')
+			else:
+				print('找不到classes.dex文件！')
+		except:
+			continue
 if __name__ == '__main__':
-	path="./workspace"
-	print("开始进dex反编译")
-	decompiledex()
-	print("dex反编译成功")
-	print("开始进行安卓漏洞静态扫描")
-	FindRefFromSingleClass(path)
-	input("按任意键结束");
+	apkfilenames=getapkFileName()
+	for apkfilename in apkfilenames:
+		path='./workspace/result/'+apkfilename
+		VulScanEngine(path,apkfilename)
+	
