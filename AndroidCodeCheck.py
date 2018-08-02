@@ -9,7 +9,8 @@ resultinfo={}
 #
 #banner_begin
 #
-def banner_bigin():
+
+def banner_begin():
 	print(" "*45+"#"*10+"#"*45)
 	print(" "*44+"#"+" "*3+"死"+" "+"不"+" "*2+"#"+" "*43+"#")
 	print(" "*43+"#"+" "*4+"生"+" "+"服"+" "*3+"#"+" "*42+"#")
@@ -21,9 +22,11 @@ def banner_bigin():
 	print(" "*42+"#"+" "*5+"武"+" "+"验"+" "*4+"#"+" "*41+"#")
 	print(" "*43+"#"+" "*4+"者"+" "+"室"+" "*3+"#"+" "*42+"#")
 	print(" "*44+"#"*12+"#"*44)
+	
 #
 #banner_end
 #
+
 def banner_finished():
 	print(" "*84+"#"+"#"*15)
 	print(" "*84+"#"+" "*3)
@@ -32,8 +35,26 @@ def banner_finished():
 	print(" "*84+"#"+"#"*15)
 	
 #
+#banner
+#
+
+def banner_new():
+	print(" "*45+"#"*10+"#"*45)
+	print(" "*44+"#"+" "*3+"死"+" "+"不"+" "*2+"#"+" "*43+"#")
+	print(" "*43+"#"+" "*4+"生"+" "+"服"+" "*3+"#"+" "*42+"#")
+	print(" "*42+"#"+" "*5+"看"+" "+"就"+" "*4+"#"+" "*41+"#")	
+	print(" "*41+"#"+" "*6+"淡"+" "+"干"+" "*5+"#"+" "*40+"#")
+	print("#"*40+"完成漏洞扫描报告输出"+"#"*40)
+	print(" "*40+"#powered by zsdlove#"+" "*39+"#")
+	print(" "*41+"#"+" "*6+"影"+" "+"实"+" "*5+"#"+" "*40+"#")
+	print(" "*42+"#"+" "*5+"武"+" "+"验"+" "*4+"#"+" "*41+"#")
+	print(" "*43+"#"+" "*4+"者"+" "+"室"+" "*3+"#"+" "*42+"#")
+	print(" "*44+"#"*12+"#"*44)
+		
+#
 #从conf.xml文件中获取特征值
 #	
+
 def getFeatureFromXml():
 	vulhub={}
 	dom = xml.dom.minidom.parse('lib/conf.xml')
@@ -61,6 +82,11 @@ def getFeatureFromXml():
 				else:
 					pass
 	return vulhub
+
+#
+#apk漏洞静态扫描引擎入口
+#
+	
 def VulScanEngine(path,apkfilename):
 	apkfilename=os.getcwd()+'//report//'+apkfilename
 	os.makedirs(apkfilename)
@@ -107,7 +133,7 @@ def VulScanEngine(path,apkfilename):
 									
 					except:
 						pass
-	banner_bigin()
+	banner_begin()
 	resultfile.write("<h2>白盒扫描漏洞报告</h2>")
 	for vul in resultinfo.keys():
 		resultfile.write("<div id='menu'><h3><a href=#"+vul+">"+vul+"漏洞</a></h3>")
@@ -125,6 +151,7 @@ def VulScanEngine(path,apkfilename):
 			resultfile.write("<p>行数："+vulitem["line"]+"</p>")
 			resultfile.write("<p>路径："+vulitem["path"]+"</p>")
 			resultfile.write("</div>")
+	banner_begin()
 	banner_finished()
 	input("按任意键结束");
 	
@@ -257,8 +284,7 @@ def android_manifest_read(path):
 				#print(node.nodeName)
 				getUsesPermission(node)#usespermission
 				getPermission(node)#permission
-				print('开始打印子节点')
-				applicationtab(node)
+				applicationtab(node)#解析application标签
 	#except:
 	#	pass
 #
@@ -267,11 +293,8 @@ def android_manifest_read(path):
 
 def applicationtab(node):
 	if node.nodeName == "application":
-		print("allowBackup："+node.getAttribute('android:allowBackup'))
-		if node.getAttribute('android:allowBackup')=="true":
-			print("存在任意数据备份漏洞")
-		else:
-			print("不存在任意数据备份漏洞")
+		buckupflaw(node)
+		isapkdebugable(node)
 		for cn in node.childNodes:
 				if cn.nodeName!="#text":
 					decompile_service(cn)
@@ -283,6 +306,27 @@ def applicationtab(node):
 					
 	else:
 		pass
+
+#
+#备份漏洞backup
+#		
+
+def buckupflaw(node):
+	if node.getAttribute('android:allowBackup')=="true":
+		print("存在任意数据备份漏洞")
+	else:
+		print("不存在任意数据备份漏洞")
+		
+#
+#判断应用是否可被调试
+#
+
+def isapkdebugable(node):
+	if node.getAttribute('android:debuggable')=="true":
+		print("应用可被调试！")
+	else:
+		print("应用不可被调试->安全")
+		
 #
 #解析activity,cn是节点
 #
@@ -297,9 +341,11 @@ def decompile_activity(cn):
 	else:
 		pass
 	return cn.getAttribute("android:exported")
+	
 #
 #解析service
 #
+
 def decompile_service(cn):
 	if cn.nodeName=="service":
 		print("exported:"+cn.getAttribute("android:exported"))
@@ -340,6 +386,7 @@ def decompile_provider(cn):
 	else:
 		pass
 	return cn.getAttribute("android:exported")
+	
 #
 #获得apk包名
 #
@@ -347,6 +394,7 @@ def decompile_provider(cn):
 def getPackageName(root):
 	packageName=root.getAttribute('package')
 	return packageName
+	
 #
 #获得应用运行权限
 #
@@ -373,6 +421,7 @@ if __name__ == '__main__':
 	#	path='./workspace/result/'+apkfilename
 	#	VulScanEngine(path,apkfilename)
 	android_manifest_read("C:/Users/74728/Desktop/ApkCodeCheck/workspace/result/test/AndroidManifest2.xml")
+	banner_new()
 	
 	
 	
