@@ -6,6 +6,11 @@ import zipfile
 #resultinfo={"xss":[item1,item2]},{}}  item={"path":"path","line":"line","linecode":"linecode"}
 resultinfo={}
 
+def banner_new():
+	pass
+
+banner_begin = banner_finished = banner_new
+
 #
 #banner_begin
 #
