@@ -3,12 +3,33 @@ import sys
 import xml.dom.minidom
 import re
 import zipfile
+sys.path.append('plugin')
+from WebviewHideAPI_Check import WebviewHideAPI_Check
 #resultinfo={"xss":[item1,item2]},{}}  item={"path":"path","line":"line","linecode":"linecode"}
 resultinfo={}
-
 #
 #banner_begin
 #
+
+def banner_begin():
+	pass
+#
+#banner_end
+#
+
+def banner_finished():
+	print(" "*84+"#"+"#"*15)
+	print(" "*84+"#"+" "*3)
+	print("#"*84+"#"*5+"#结束#"+"#"*5)
+	print(" "*84+"#"+" "*3)
+	print(" "*84+"#"+"#"*15)
+	
+#
+#banner
+#
+
+def banner_new():
+	pass					
 #
 #从conf.xml文件中获取特征值
 #	
@@ -40,6 +61,21 @@ def getFeatureFromXml():
 				else:
 					pass
 	return vulhub
+#
+#各种漏洞进一步检测的入口
+#
+
+def vulCheckEngine(vulname,lines):
+	return getModuleByVulname(vulname,lines)
+	
+#
+#通过漏洞类型找到漏洞检测函数
+#
+
+def getModuleByVulname(vulname,lines):
+	flag=eval(vulname+"_Check"+"(lines)")
+	print(vulname+"detecting finished")
+	return flag
 
 #
 #apk漏洞静态扫描引擎入口
@@ -74,18 +110,28 @@ def VulScanEngine(path,apkfilename):
 								linecode=lines[lineslen]
 								linecode=str(linecode,encoding="utf-8")	
 								for vulname in features.keys():
+									if vulname not in resultinfo.keys():
+										resultinfo[vulname]=[]
 									for feature in features[vulname]['item']:
 										m=re.match(r'.*'+feature+'.*',linecode)
 										if m:
+											#加载插件进行进一步识别，如webview隐藏api漏洞检测，WebviewHideAPI
 											print("[+]找到疑似"+vulname+"漏洞点，地址是："+filepath)
-											vulinfo={}
-											vulinfo["path"]=filepath
-											vulinfo["linecode"]=linecode
-											vulinfo["line"]=str(lineslen)
-											if vulname not in resultinfo.keys():
-												resultinfo[vulname]=[]
-											resultinfo[vulname].append(vulinfo)
-											resultfile2.write("[+]checked:"+vulname+" 地址："+filepath+"行数："+str(lineslen)+"\n")
+											if vulCheckEngine(vulname,lines):
+												vulinfo={}
+												vulinfo["path"]=filepath
+												vulinfo["linecode"]=linecode
+												vulinfo["line"]=str(lineslen)
+												resultinfo[vulname].append(vulinfo)
+												resultfile2.write("[+]checked:"+vulname+" 地址："+filepath+"行数："+str(lineslen)+"\n")
+											else:
+											#现阶段没有太多的plugin，所以else模糊一点
+												vulinfo={}
+												vulinfo["path"]=filepath
+												vulinfo["linecode"]=linecode
+												vulinfo["line"]=str(lineslen)
+												resultinfo[vulname].append(vulinfo)
+												resultfile2.write("[+]checked:"+vulname+" 地址："+filepath+"行数："+str(lineslen)+"\n")
 										else:
 											pass
 									
@@ -374,12 +420,11 @@ def getPermission(node):
 	
 if __name__ == '__main__':
 	decompile_AndroidManifest()
-	#apkfilenames=getapkFileName()
-	#for apkfilename in apkfilenames:
-	#	path='./workspace/result/'+apkfilename
-	#	VulScanEngine(path,apkfilename)
-	android_manifest_read("C:/Users/74728/Desktop/ApkCodeCheck/workspace/result/test/AndroidManifest2.xml")
-	banner_new()
-	
-	
+	apkfilenames=getapkFileName()
+	for apkfilename in apkfilenames:
+		path='./workspace/result/'+apkfilename
+		VulScanEngine(path,apkfilename)
+	#android_manifest_read("C:/Users/74728/Desktop/ApkCodeCheck/workspace/result/test/AndroidManifest2.xml")
+	#lines='removeJavascriptInterface|||accessibility|||searchBoxJavaBridge_|||accessibilityTraversal'
+	#getModuleByVulname("WebviewHideAPI",lines)
 	
