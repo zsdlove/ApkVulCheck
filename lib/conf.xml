@@ -110,4 +110,9 @@
 		<item>Ljava/security/SecureRandom;->setSeed</item>
 		<item>Ljava/security/SecureRandom;-></item>
 	</UnsafeRandomCode>
+	<shunwang>
+		<desc>顺网恶意sdk</desc>
+		<item>http://mbl.shunwang.com/cfg/config.json</item>
+		<item>com.shunwang.service.alarm</item>
+	</shunwang>
 </catalog>
