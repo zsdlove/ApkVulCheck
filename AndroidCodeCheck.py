@@ -3,33 +3,13 @@ import sys
 import xml.dom.minidom
 import re
 import zipfile
+import random
+import getopt
 sys.path.append('plugin')
 from WebviewHideAPI_Check import WebviewHideAPI_Check
 #resultinfo={"xss":[item1,item2]},{}}  item={"path":"path","line":"line","linecode":"linecode"}
 resultinfo={}
-#
-#banner_begin
-#
-
-def banner_begin():
-	pass
-#
-#banner_end
-#
-
-def banner_finished():
-	print(" "*84+"#"+"#"*15)
-	print(" "*84+"#"+" "*3)
-	print("#"*84+"#"*5+"#结束#"+"#"*5)
-	print(" "*84+"#"+" "*3)
-	print(" "*84+"#"+"#"*15)
-	
-#
-#banner
-#
-
-def banner_new():
-	pass					
+apkname=""
 #
 #从conf.xml文件中获取特征值
 #	
@@ -75,23 +55,56 @@ def vulCheckEngine(vulname,lines):
 def getModuleByVulname(vulname,lines):
 	flag=eval(vulname+"_Check"+"(lines)")
 	print(vulname+"detecting finished")
-	return flag
+	return flag	
 
+#
+#usage
+#	
+
+def usage():
+	print('''
+Help:
+	-t [apkpath]
+	-o [resultpath]
+	-l [apklistpath]
+examples:
+	python -t c:/test.apk -o c:/test.html
+	''')
+	
+#
+#get cmd args
+def getcmdargs():
+	opts, args = getopt.getopt(sys.argv[1:], "h:t:o:", ["help", "output","target"])
+	print(opts)
+	for opt,val in opts:
+		if opt in ('-h','--help'):
+			usage()
+		elif opt in ('-o','--output'):
+			print(val)
+		elif opt in ('-t','--target'):
+			print(val)
+		else:
+			print("default mode")
+#
+
+	
 #
 #apk漏洞静态扫描引擎入口
 #
 	
-def VulScanEngine(path,apkfilename):
-	apkfilename=os.getcwd()+'//report//'+apkfilename
-	os.makedirs(apkfilename)
-	resultfile=open(apkfilename+"//_result.html",'w+')
-	resultfile2=open(apkfilename+"//_result.txt",'w+')
+def VulScanEngine():
+	apkfilename=apkname
+	apkresultpath=os.getcwd()+'//report//'+apkfilename
+	os.makedirs(apkresultpath)
+	resultfile=open(apkresultpath+"//_result.html",'w+')
+	resultfile2=open(apkresultpath+"//_result.txt",'w+')
 	features=getFeatureFromXml()
 	print("开始进dex反编译")
 	decompiledex()
 	print("开始进行AndroidManifest.xml反编译")
 	decompile_AndroidManifest()
 	print("开始进行安卓漏洞静态扫描")
+	path='./workspace/result/'+apkfilename
 	for root,dirs,files,in os.walk(path):
 			for file in files:
 				if os.path.splitext(file)[1] == '.smali':
@@ -115,17 +128,8 @@ def VulScanEngine(path,apkfilename):
 									for feature in features[vulname]['item']:
 										m=re.match(r'.*'+feature+'.*',linecode)
 										if m:
-											#加载插件进行进一步识别，如webview隐藏api漏洞检测，WebviewHideAPI
-											print("[+]找到疑似"+vulname+"漏洞点，地址是："+filepath)
-											if vulCheckEngine(vulname,lines):
-												vulinfo={}
-												vulinfo["path"]=filepath
-												vulinfo["linecode"]=linecode
-												vulinfo["line"]=str(lineslen)
-												resultinfo[vulname].append(vulinfo)
-												resultfile2.write("[+]checked:"+vulname+" 地址："+filepath+"行数："+str(lineslen)+"\n")
-											else:
-											#现阶段没有太多的plugin，所以else模糊一点
+												print("[+]找到疑似"+vulname+"漏洞点，地址是："+filepath)
+												#if vulCheckEngine(vulname,lines):
 												vulinfo={}
 												vulinfo["path"]=filepath
 												vulinfo["linecode"]=linecode
@@ -137,7 +141,6 @@ def VulScanEngine(path,apkfilename):
 									
 					except:
 						pass
-	banner_begin()
 	resultfile.write("<h2>白盒扫描漏洞报告</h2>")
 	for vul in resultinfo.keys():
 		resultfile.write("<div id='menu'><h3><a href=#"+vul+">"+vul+"漏洞</a></h3>")
@@ -155,8 +158,7 @@ def VulScanEngine(path,apkfilename):
 			resultfile.write("<p>行数："+vulitem["line"]+"</p>")
 			resultfile.write("<p>路径："+vulitem["path"]+"</p>")
 			resultfile.write("</div>")
-	banner_begin()
-	banner_finished()
+	print(resultinfo)
 	input("按任意键结束");
 	
 #
@@ -179,11 +181,11 @@ def getapkFileName():
 
 def decompiledex():
 	path=os.getcwd()+'//workspace//result//'
-	apkfileNames=getapkFileName()
+	#apkfileNames=getapkFileName()
 	getdexfile()#处理apk文件
-	for apkfileName in apkfileNames:
-		cmd="java -jar lib/baksmali.jar -o workspace/result/"+apkfileName+" workspace/result/"+apkfileName+"/classes.dex"
-		os.system(cmd)
+	#for apkfileName in apkfileNames:
+	cmd="java -jar lib/baksmali.jar -o workspace/result/"+apkname+" workspace/result/"+apkname+"/classes.dex"
+	os.system(cmd)
 	print('dex文件反编译成功')
 	
 #
@@ -192,13 +194,14 @@ def decompiledex():
 
 def decompile_AndroidManifest():
 	path=os.getcwd()+'//workspace//result//'
-	apkfileNames=getapkFileName()
+	#apkfileNames=getapkFileName()
 	getAndroidManifest()#获取apk中的AndroidManifest.xml文件
-	for apkfileName in apkfileNames:
-		cmd="java -jar lib/AXMLPrinter2.jar workspace/result/"+apkfileName+"/AndroidManifest.xml > "+" workspace/result/"+apkfileName+"/AndroidManifest2.xml"
-		print("打印cmd"+cmd)
-		os.system(cmd)
-		android_manifest_read("workspace/result/"+apkfileName+"/AndroidManifest2.xml")
+	#for apkfileName in apkfileNames:
+
+	cmd="java -jar lib/AXMLPrinter2.jar workspace/result/"+apkname+"/AndroidManifest.xml > "+" workspace/result/"+apkname+"/AndroidManifest_resolved.xml"
+	print("打印cmd"+cmd)
+	os.system(cmd)
+	android_manifest_read("workspace/result/"+apkname+"/AndroidManifest_resolved.xml")
 	print('AndroidManifest.xml反编译成功！')
 	
 #
@@ -226,12 +229,11 @@ def getdexfile():
 			zipfiles=zipfile.ZipFile(apkfilepath)
 			a=zipfiles.read('classes.dex')
 			if a !='':
-				apkfileName=apkfilepath.split('.')[0].split('\\')[-1]
+				#apkfileName=apkfilepath.split('.')[0].split('\\')[-1]
+				apkfileName=apkname
 				print('apk文件名'+apkfileName)
 				apkdir=os.getcwd()+'\\workspace\\result\\'+apkfileName
-				print(apkdir)
-				if not os.path.exists(apkdir):
-					os.makedirs(apkdir)
+				os.makedirs(apkdir)
 				dexfile=open('workspace/result/'+apkfileName+'/classes.dex','wb')
 				dexfile.write(a)
 				print('获取classes.dex文件成功')
@@ -250,13 +252,13 @@ def getAndroidManifest():
 			zipfiles=zipfile.ZipFile(apkfilepath)
 			a=zipfiles.read('AndroidManifest.xml')
 			if a !='':
-				apkfileName=apkfilepath.split('.')[0].split('\\')[-1]
-				print('apk文件名'+apkfileName)
-				apkdir=os.getcwd()+'\\workspace\\result\\'+apkfileName
+				#apkname=apkfilepath.split('.')[0].split('\\')[-1]
+				print('apk文件名'+apkname)
+				apkdir=os.getcwd()+'\\workspace\\result\\'+apkname
 				print(apkdir)
 				if not os.path.exists(apkdir):
 					os.makedirs(apkdir)
-				dexfile=open('workspace/result/'+apkfileName+'/AndroidManifest.xml','wb')
+				dexfile=open('workspace/result/'+apkname+'/AndroidManifest.xml','wb')
 				dexfile.write(a)
 				print('获取AndroidManifest.xml文件成功')
 			else:
@@ -265,8 +267,7 @@ def getAndroidManifest():
 			continue
 
 #
-#manifest.xml解析结果保存,数据结构定义
-#result_manifest={'packageName':'','UsesPermission':[],'Permission':[],'application':{'backup':'','activity':{},'service':'{},'receiver':{},'provider':{}}}
+#manifest.xml解析结果保存
 #
 
 result_manifest={}
@@ -419,12 +420,11 @@ def getPermission(node):
 	return node.getAttribute('android:name')
 	
 if __name__ == '__main__':
+	getcmdargs()
+'''
 	decompile_AndroidManifest()
 	apkfilenames=getapkFileName()
 	for apkfilename in apkfilenames:
-		path='./workspace/result/'+apkfilename
-		VulScanEngine(path,apkfilename)
-	#android_manifest_read("C:/Users/74728/Desktop/ApkCodeCheck/workspace/result/test/AndroidManifest2.xml")
-	#lines='removeJavascriptInterface|||accessibility|||searchBoxJavaBridge_|||accessibilityTraversal'
-	#getModuleByVulname("WebviewHideAPI",lines)
-	
+		apkname=apkfilename+str(random.randrange(1000,9999))
+		VulScanEngine()
+'''
