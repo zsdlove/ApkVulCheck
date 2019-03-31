@@ -7,13 +7,10 @@ import random
 import getopt
 sys.path.append('plugin')
 from WebviewHideAPI_Check import WebviewHideAPI_Check
-#resultinfo={"xss":[item1,item2]},{}}  item={"path":"path","line":"line","linecode":"linecode"}
-#resultinfo={}
-#apkname=""
-
 class apkvulcheck:
 	def __init__(self):
 		self.resultinfo={}
+		self.apknamelist=getapkFileName()
 	#
 	#获取manifest.xml文件
 	#			
@@ -142,10 +139,7 @@ class apkvulcheck:
 
 	def decompile_AndroidManifest(self,apkname):
 		path=os.getcwd()+'//workspace//result//'
-		#apkfileNames=getapkFileName()
 		self.getAndroidManifest(apkname)#获取apk中的AndroidManifest.xml文件
-		#for apkfileName in apkfileNames:
-
 		cmd="java -jar lib/AXMLPrinter2.jar workspace/result/"+apkname+"/AndroidManifest.xml > "+" workspace/result/"+apkname+"/AndroidManifest_resolved.xml"
 		print("打印cmd"+cmd)
 		os.system(cmd)
@@ -154,8 +148,8 @@ class apkvulcheck:
 			
 		
 	def run(self):
-		for apkfilename in getapkFileName():
-			apkname=apkfilename+str(random.randrange(1000,9999))
+		for apkname in self.apknamelist:
+			apkname=apkname+str(random.randrange(1000,9999))
 			self.VulScanEngine(apkname)		
 #
 #从conf.xml文件中获取特征值
