@@ -1,3 +1,9 @@
+# -- coding:utf-8 --
+'''
+Coded by zsdlove
+This is a toolt to help android app developers to check the flaws in their sourcecode 
+'''
+
 import os
 import sys
 import xml.dom.minidom
