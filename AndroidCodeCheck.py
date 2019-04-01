@@ -268,8 +268,8 @@ class apkvulcheck:
 		cptcheck.run()
 		log.warning("开始进行安卓漏洞静态扫描")
 		path='./workspace/result/'+apkname
-		#try:
-		for root,dirs,files,in os.walk(path):
+		try:
+			for root,dirs,files,in os.walk(path):
 					for file in files:
 						if os.path.splitext(file)[1] == '.smali':
 							refs={}
@@ -303,15 +303,15 @@ class apkvulcheck:
 											
 							except:
 								pass
-		#except:
-		#	pass
-		'''
+		except KeyboardInterrupt:
+			exit("已终止扫描")
+		except:
+			exit("未知错误")
 		finally:
 			#生成报告
 			reporter=apkvulreporter(resultfile,self.resultinfo)
 			reporter.generate()
 			input("按任意键结束");
-			'''
 	#
 	#获得dex文件
 	#
