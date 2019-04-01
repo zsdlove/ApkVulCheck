@@ -14,7 +14,8 @@ import getopt
 import shutil
 sys.path.append('plugin')
 from WebviewHideAPI_Check import WebviewHideAPI_Check
-
+import logging
+log = logging.getLogger(__name__)
 class cmdreceiver:
 	def __init__(self):
 		self.output=''
@@ -31,7 +32,7 @@ class cmdreceiver:
 			elif opt in ('-t','--target'):
 				self.target=val
 			else:
-				print("default mode")
+				pass
 
 	def receive(self):
 		self.handlecmdargs()
@@ -39,7 +40,6 @@ class cmdreceiver:
 	def doapkcpy(self):
 		copypath=os.getcwd()+"\workspace\\apk\\"+str(random.randrange(1000,9999))+".apk"
 		shutil.copyfile(self.gettarget(),copypath)
-		print("拷贝成功")
 	def getoutput(self):
 		return self.output
 
@@ -64,10 +64,10 @@ class apkvulreporter:
 			count=0
 			for vulitem in self.resultinfo[vul]:
 				count=count+1
-				print("[+]找到疑似"+vul+"漏洞点！")
-				print("代码是："+vulitem["linecode"].strip())
-				print("行数："+vulitem["line"])
-				print("路径："+vulitem["path"])
+				log.warning("[+]找到疑似"+vul+"漏洞点！")
+				log.warning("代码是："+vulitem["linecode"].strip())
+				log.warning("行数："+vulitem["line"])
+				log.warning("路径："+vulitem["path"])
 				self.resultfile.write("<h4>第"+str(count)+"处漏洞点</h4>")
 				self.resultfile.write("<p>代码是："+vulitem["linecode"].strip()+"</p>")
 				self.resultfile.write("<p>行数："+vulitem["line"]+"</p>")
@@ -143,10 +143,8 @@ class componentcheck:
 	def android_manifest_check(self):
 		#try:
 			dom = xml.dom.minidom.parse(self.manifest_path)
-			print("xml读取成功")
 			root = dom.documentElement
 			packageName=self.getPackageName(root)
-			print("apk包名是："+packageName)
 			nodelist=root.childNodes
 			for node in nodelist:
 				if node.nodeName!="#text":
@@ -163,11 +161,11 @@ class componentcheck:
 	#
 	def decompile_activity(self,cn):
 		if cn.nodeName=="activity":
-			print("exported:"+cn.getAttribute("android:exported"))
+			log.warning("exported:"+cn.getAttribute("android:exported"))
 			if cn.getAttribute("android:exported")=="true":
-				print("activity组件导出,存在风险")
+				log.warning("activity组件导出,存在风险")
 			else:
-				print("activity组件安全")
+				log.warning("activity组件安全")
 		else:
 			pass
 		return cn.getAttribute("android:exported")
@@ -177,11 +175,11 @@ class componentcheck:
 	#
 	def decompile_service(self,cn):
 		if cn.nodeName=="service":
-			print("exported:"+cn.getAttribute("android:exported"))
+			log.warning("exported:"+cn.getAttribute("android:exported"))
 			if cn.getAttribute("android:exported")=="true":
-				print("service组件导出,存在风险")
+				log.warning("service组件导出,存在风险")
 			else:
-				print("service组件安全")
+				log.warning("service组件安全")
 		else:
 			pass
 		return cn.getAttribute("android:exported")
@@ -191,11 +189,11 @@ class componentcheck:
 	#
 	def decompile_receiver(self,cn):
 		if cn.nodeName=="receiver":
-			print("exported:"+cn.getAttribute("android:exported"))
+			log.warning("exported:"+cn.getAttribute("android:exported"))
 			if cn.getAttribute("android:exported")=="true":
-				print("receiver组件导出,存在风险")
+				log.warning("receiver组件导出,存在风险")
 			else:
-				print("receiver组件安全")
+				log.warning("receiver组件安全")
 		else:
 			pass
 		return cn.getAttribute("android:exported")
@@ -205,11 +203,11 @@ class componentcheck:
 	#
 	def decompile_provider(self,cn):
 		if cn.nodeName=="provider":
-			print("exported:"+cn.getAttribute("android:exported"))
+			log.warning("exported:"+cn.getAttribute("android:exported"))
 			if cn.getAttribute("android:exported")=="true":
-				print("provider组件导出,存在风险")
+				log.warning("provider组件导出,存在风险")
 			else:
-				print("provider组件安全")
+				log.warning("provider组件安全")
 		else:
 			pass
 		return cn.getAttribute("android:exported")
@@ -225,23 +223,19 @@ class apkvulcheck:
 	#			
 	def getAndroidManifest(self,apkname):
 		apkfilelist=getApkFilePath()
-		print('py文件目录'+os.getcwd())
 		for apkfilepath in apkfilelist:
 			try:
 				zipfiles=zipfile.ZipFile(apkfilepath)
 				a=zipfiles.read('AndroidManifest.xml')
 				if a !='':
 					#apkname=apkfilepath.split('.')[0].split('\\')[-1]
-					print('apk文件名'+apkname)
 					apkdir=os.getcwd()+'\\workspace\\result\\'+apkname
-					print(apkdir)
 					if not os.path.exists(apkdir):
 						os.makedirs(apkdir)
 					dexfile=open('workspace/result/'+apkname+'/AndroidManifest.xml','wb')
 					dexfile.write(a)
-					print('获取AndroidManifest.xml文件成功')
 				else:
-					print('找不到AndroidManifest.xml文件！')
+					log.warning('找不到AndroidManifest.xml文件！')
 			except:
 				continue
 		
@@ -265,75 +259,77 @@ class apkvulcheck:
 			resultfile=open(apkresultpath+"//_result.html",'w+')
 			resultfile2=open(apkresultpath+"//_result.txt",'w+')
 		features=getFeatureFromXml()
-		print("开始进dex反编译")
+		log.warning("开始进dex反编译")
 		self.decompiledex(apkname)
-		print("开始进行AndroidManifest.xml反编译")
+		log.warning("开始进行AndroidManifest.xml反编译")
 		self.decompile_AndroidManifest(apkname)
 		#解析并检测manifest.xml文件
 		cptcheck=componentcheck(apkname)
 		cptcheck.run()
-		print("开始进行安卓漏洞静态扫描")
+		log.warning("开始进行安卓漏洞静态扫描")
 		path='./workspace/result/'+apkname
+		#try:
 		for root,dirs,files,in os.walk(path):
-				for file in files:
-					if os.path.splitext(file)[1] == '.smali':
-						refs={}
-						#print(os.path.join(root,file))
-						filepath=os.path.join(root,file)
-						className=os.path.splitext(file)[0]
-						print("开始扫描类文件："+filepath)
-						f=open(filepath,'rb')
-						lines=f.readlines()
-						lineslen=len(lines)
-						className=os.path.splitext(file)[0]
-						try:
-							while lineslen>0:
-									lineslen=lineslen-1
-									linecode=lines[lineslen]
-									linecode=str(linecode,encoding="utf-8")	
-									for vulname in features.keys():
-										if vulname not in self.resultinfo.keys():
-											self.resultinfo[vulname]=[]
-										for feature in features[vulname]['item']:
-											m=re.match(r'.*'+feature+'.*',linecode)
-											if m:
-													print("[+]找到疑似"+vulname+"漏洞点，地址是："+filepath)
-													#if vulCheckEngine(vulname,lines):
-													vulinfo={}
-													vulinfo["path"]=filepath
-													vulinfo["linecode"]=linecode
-													vulinfo["line"]=str(lineslen)
-													self.resultinfo[vulname].append(vulinfo)
-													resultfile2.write("[+]checked:"+vulname+" 地址："+filepath+"行数："+str(lineslen)+"\n")
-											else:
-												pass
-										
-						except:
-							pass
-		#生成报告
-		reporter=apkvulreporter(resultfile,self.resultinfo)
-		reporter.generate()
-		input("按任意键结束");
+					for file in files:
+						if os.path.splitext(file)[1] == '.smali':
+							refs={}
+							filepath=os.path.join(root,file)
+							className=os.path.splitext(file)[0]
+							f=open(filepath,'rb')
+							lines=f.readlines()
+							lineslen=len(lines)
+							className=os.path.splitext(file)[0]
+							try:
+								while lineslen>0:
+										lineslen=lineslen-1
+										linecode=lines[lineslen]
+										linecode=str(linecode,encoding="utf-8")	
+										for vulname in features.keys():
+											if vulname not in self.resultinfo.keys():
+												self.resultinfo[vulname]=[]
+											for feature in features[vulname]['item']:
+												m=re.match(r'.*'+feature+'.*',linecode)
+												if m:
+														log.warning("[+]找到疑似"+vulname+"漏洞点，地址是："+filepath)
+														#if vulCheckEngine(vulname,lines):
+														vulinfo={}
+														vulinfo["path"]=filepath
+														vulinfo["linecode"]=linecode
+														vulinfo["line"]=str(lineslen)
+														self.resultinfo[vulname].append(vulinfo)
+														resultfile2.write("[+]checked:"+vulname+" 地址："+filepath+"行数："+str(lineslen)+"\n")
+												else:
+													pass
+											
+							except:
+								pass
+		#except:
+		#	pass
+		'''
+		finally:
+			#生成报告
+			reporter=apkvulreporter(resultfile,self.resultinfo)
+			reporter.generate()
+			input("按任意键结束");
+			'''
 	#
 	#获得dex文件
 	#
 	def getdexfile(self,apkname):
 		apkfilelist=getApkFilePath()
-		print('py文件目录'+os.getcwd())
 		for apkfilepath in apkfilelist:
 			try:
 				zipfiles=zipfile.ZipFile(apkfilepath)
 				a=zipfiles.read('classes.dex')
 				if a !='':
 					#apkfileName=apkfilepath.split('.')[0].split('\\')[-1]
-					print('apk文件名'+apkname)
 					apkdir=os.getcwd()+'\\workspace\\result\\'+apkname
 					os.makedirs(apkdir)
 					dexfile=open('workspace/result/'+apkname+'/classes.dex','wb')
 					dexfile.write(a)
-					print('获取classes.dex文件成功')
+					log.warning('获取classes.dex文件成功')
 				else:
-					print('找不到classes.dex文件！')
+					log.warning('找不到classes.dex文件！')
 			except:
 				continue
 			
@@ -345,9 +341,8 @@ class apkvulcheck:
 		path=os.getcwd()+'//workspace//result//'
 		self.getAndroidManifest(apkname)#获取apk中的AndroidManifest.xml文件
 		cmd="java -jar lib/AXMLPrinter2.jar workspace/result/"+apkname+"/AndroidManifest.xml > "+" workspace/result/"+apkname+"/AndroidManifest_resolved.xml"
-		print("打印cmd"+cmd)
 		os.system(cmd)
-		print('AndroidManifest.xml反编译成功！')
+		log.warning('AndroidManifest.xml反编译成功！')
 			
 		
 	def run(self):
@@ -406,7 +401,7 @@ def vulCheckEngine(vulname,lines):
 
 def getModuleByVulname(vulname,lines):
 	flag=eval(vulname+"_Check"+"(lines)")
-	print(vulname+"detecting finished")
+	log.warning(vulname+"detecting finished")
 	return flag	
 
 #
