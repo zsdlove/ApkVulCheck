@@ -32,8 +32,20 @@
 31、顺网恶意sdk检测
 
 0x2 使用方法：
+这里有两种方法执行扫描
+第一种：
 1、将需要扫描的apk文件放到workspace/apk目录下
 2、点击AndroidCodeCheck.exe或执行python AndroidCodeCheck.py即可执行漏洞扫描
+第二种指定路径：
+如：python AndroidCodeCheck.py -t [target] [output]
+
+命令行参数：
+args:
+	-t [apkpath]
+	-o [resultpath]
+	-l [apklistpath]
+examples:
+	python -t c:/test.apk -o c:/test.html
 
 0x3 报告输出
 报告输出路径在report下
