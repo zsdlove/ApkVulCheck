@@ -329,8 +329,7 @@ if __name__ == '__main__':
     '''
     os.system("java -jar lib/baksmali.jar %s -o %s" % (dexpath,smalipath))
     print("dex2smali successfully!")
-    
-	parser=SmaliParser("smalipath,"smali")
+    parser=SmaliParser("smalipath,"smali")
     parser.run()
     funcNameList=open('res/funcNameConfig.txt','r').readlines()
     funcInvokeConfig=open('res/funcInvokeConfig.txt','a+')
