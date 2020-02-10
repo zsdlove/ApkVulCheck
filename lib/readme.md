@@ -14,7 +14,7 @@
 And Soon you will get the corresponding function call statement in bytecode form.
 
 ### 3、Program output
-![output](https://www.mdeditor.com/images/logos/markdown.png "output")
+![output](https://github.com/zsdlove/ApkVulCheck/blob/master/lib/output.png "output")
 
 ### 3、FBI Warming
 The file named funcInvokeConfig.txt contains some Android related sink points and source points Which may be useful to you.
