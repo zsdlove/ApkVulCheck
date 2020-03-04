@@ -53,20 +53,17 @@ shellfeatures={
 }
 def shellDetector(apkpath):
 	shellType=""
-	shellsign=""
-	flag=True
 	zipfiles=zipfile.ZipFile(apkpath)
 	nameList=zipfiles.namelist()
 	for fileName in nameList:
+	     try:
 		for shell in shellfeatures.keys():
-			if shell in fileName:
-				flag=True
-				shellType=shellfeatures[shell]
-				shellsign=shell
-				break
-			else:
-				flag=False
-	if flag==True:
-		print("经检测，该apk使用了"+shellType+"进行加固")
+		    if shell in fileName:
+		       print(u"经检测，该apk使用了%s进行加固."%shellType)
+		       shellType=shellfeatures[shell]
+		       return True,shellType
+	     except:
+		return False,u"unknown"
+	return False,u"未加壳"
 if __name__ == '__main__':
-	shellDetector("test.apk")
+     shellDetector("test.apk")
