@@ -1,0 +1,201 @@
+#-*-coding:utf-8-*-
+'''
+permission analyzer（for permission over use check）
+权限分析（用于权限滥用的检测）
+其中group中的权限只要申请了一个该组中的其他权限都可以获得.
+by pOny@moresec
+2020.2.24
+'''
+class permissionAnalyzer():
+    def __init__(self):
+        self.dvmPermission={
+            "android.permission.ACCESS_CHECKIN_PROPERTIES":[u"dangerous",u"访问登记属性",u"读取或写入登记check-in数据库属性表的权限"],
+            "android.permission.ACCESS_COARSE_LOCATION":[u"dangerous",u"获取错略位置",u"通过WiFi或移动基站的方式获取用户错略的经纬度信息,定位精度大概误差在30~1500米"],
+            "android.permission.ACCESS_FINE_LOCATION":[u"dangerous",u"获取精确位置",u"通过GPS芯片接收卫星的定位信息,定位精度达10米以内"],
+            "android.permission.ACCESS_LOCATION_EXTRA_COMMANDS":[u"dangerous",u"访问定位额外命令",u"允许程序访问额外的定位提供者指令"],
+            "android.permission.ACCESS_MOCK_LOCATION":[u"dangerous",u"获取模拟定位信息",u"获取模拟定位信息,一般用于帮助开发者调试应用"],
+            "android.permission.ACCESS_NETWORK_STATE":[u"dangerous",u"获取网络状态",u"获取网络信息状态,如当前的网络连接是否有效"],
+            "android.permission.ACCESS_SURFACE_FLINGER":[u"dangerous",u"访问Surface Flinger",u"Android平台上底层的图形显示支持,一般用于游戏或照相机预览界面和底层模式的屏幕截图"],
+            "android.permission.ACCESS_WIFI_STATE":[u"dangerous",u"获取WiFi状态",u"获取当前WiFi接入的状态以及WLAN热点的信息"],
+            "android.permission.ACCOUNT_MANAGER":[u"dangerous",u"账户管理",u"获取账户验证信息,主要为GMail账户信息,只有系统级进程才能访问的权限"],
+            "android.permission.AUTHENTICATE_ACCOUNTS":[u"dangerous",u"验证账户",u"允许一个程序通过账户验证方式访问账户管理ACCOUNT_MANAGER相关信息"],
+            "android.permission.BATTERY_STATS":[u"dangerous",u"电量统计",u"获取电池电量统计信息"],
+            "android.permission.BIND_APPWIDGET":[u"dangerous",u"绑定小插件",u"允许一个程序告诉appWidget服务需要访问小插件的数据库,只有非常少的应用才用到此权限"],
+            "android.permission.BIND_DEVICE_ADMIN":[u"dangerous",u"绑定设备管理",u"请求系统管理员接收者receiver,只有系统才能使用"],
+            "android.permission.BIND_INPUT_METHOD":[u"dangerous",u"绑定输入法",u"请求InputMethodService服务,只有系统才能使用"],
+            "android.permission.BIND_REMOTEVIEWS":[u"dangerous",u"绑定RemoteView",u"必须通过RemoteViewsService服务来请求,只有系统才能用"],
+            "android.permission.BLUETOOTH":[u"dangerous",u"使用蓝牙",u"允许程序连接配对过的蓝牙设备"],
+            "android.permission.BLUETOOTH_ADMIN":[u"dangerous",u"蓝牙管理",u"允许程序进行发现和配对新的蓝牙设备"],
+            "android.permission.BRICK":[u"dangerous",u"变成砖头",u"能够禁用手机,非常危险,顾名思义就是让手机变成砖头"],
+            "android.permission.BROADCAST_PACKAGE_REMOVED":[u"dangerous",u"应用删除时广播",u"当一个应用在删除时触发一个广播"],
+            "android.permission.BROADCAST_SMS":[u"dangerous",u"收到短信时广播",u"当收到短信时触发一个广播"],
+            "android.permission.BROADCAST_STICKY":[u"dangerous",u"连续广播",u"允许一个程序收到广播后快速收到下一个广播"],
+            "android.permission.BROADCAST_WAP_PUSH":[u"dangerous",u"WAP PUSH广播",u"WAP PUSH服务收到后触发一个广播"],
+            "android.permission.CALL_PHONE":[u"dangerous",u"拨打电话",u"允许程序从非系统拨号器里输入电话号码"],
+            "android.permission.CALL_PRIVILEGED":[u"dangerous",u"通话权限",u"允许程序拨打电话,替换系统的拨号器界面"],
+            "android.permission.CAMERA":[u"dangerous",u"拍照权限",u"允许访问摄像头进行拍照"],
+            "android.permission.CHANGE_COMPONENT_ENABLED_STATE":[u"dangerous",u"改变组件状态",u"改变组件是否启用状态"],
+            "android.permission.CHANGE_CONFIGURATION":[u"dangerous",u"改变配置",u"允许当前应用改变配置,如定位"],
+            "android.permission.CHANGE_NETWORK_STATE":[u"dangerous",u"改变网络状态",u"改变网络状态如是否能联网"],
+            "android.permission.CHANGE_WIFI_MULTICAST_STATE":[u"dangerous",u"改变WiFi多播状态",u"改变WiFi多播状态"],
+            "android.permission.CHANGE_WIFI_STATE":[u"dangerous",u"改变WiFi状态",u"改变WiFi状态"],
+            "android.permission.CLEAR_APP_CACHE":[u"dangerous",u"清除应用缓存",u"清除应用缓存"],
+            "android.permission.CLEAR_APP_USER_DATA":[u"dangerous",u"清除用户数据",u"清除应用的用户数据"],
+            "android.permission.CWJ_GROUP":[u"dangerous",u"底层访问权限",u"允许CWJ账户组访问底层信息"],
+            "android.permission.CELL_PHONE_MASTER_EX":[u"dangerous",u"手机优化大师扩展权限",u"手机优化大师扩展权限"],
+            "android.permission.CONTROL_LOCATION_UPDATES":[u"dangerous",u"控制定位更新",u"允许获得移动网络定位信息改变"],
+            "android.permission.DELETE_CACHE_FILES":[u"dangerous",u"删除缓存文件",u"允许应用删除缓存文件"],
+            "android.permission.DELETE_PACKAGES":[u"dangerous",u"删除应用",u"允许程序删除应用"],
+            "android.permission.DEVICE_POWER":[u"dangerous",u"电源管理",u"允许访问底层电源管理"],
+            "android.permission.DIAGNOSTIC":[u"dangerous",u"应用诊断",u"允许程序到RW到诊断资源"],
+            "android.permission.DISABLE_KEYGUARD":[u"dangerous",u"禁用键盘锁",u"允许程序禁用键盘锁"],
+            "android.permission.DUMP":[u"dangerous",u"转存系统信息",u"允许程序获取系统dump信息从系统服务"],
+            "android.permission.EXPAND_STATUS_BAR":[u"dangerous",u"状态栏控制",u"允许程序扩展或收缩状态栏"],
+            "android.permission.FACTORY_TEST":[u"dangerous",u"工厂测试模式",u"允许程序运行工厂测试模式"],
+            "android.permission.FLASHLIGHT":[u"dangerous",u"使用闪光灯",u"允许访问闪光灯"],
+            "android.permission.FORCE_BACK":[u"dangerous",u"强制后退",u"允许程序强制使用back后退按键,无论Activity是否在顶层"],
+            "android.permission.GET_ACCOUNTS":[u"dangerous",u"访问账户Gmail列表",u"访问GMail账户列表"],
+            "android.permission.GET_PACKAGE_SIZE":[u"dangerous",u"获取应用大小",u"获取应用的文件大小"],
+            "android.permission.GET_TASKS":[u"dangerous",u"获取任务信息",u"允许程序获取当前或最近运行的应用"],
+            "android.permission.GLOBAL_SEARCH":[u"dangerous",u"允许全局搜索",u"允许程序使用全局搜索功能"],
+            "android.permission.HARDWARE_TEST":[u"dangerous",u"硬件测试",u"访问硬件辅助设备,用于硬件测试"],
+            "android.permission.INJECT_EVENTS":[u"dangerous",u"注射事件",u"允许访问本程序的底层事件,获取按键、轨迹球的事件流"],
+            "android.permission.INSTALL_LOCATION_PROVIDER":[u"dangerous",u"安装定位提供",u"安装定位提供"],
+            "android.permission.INSTALL_PACKAGES":[u"dangerous",u"安装应用程序",u"允许程序安装应用"],
+            "android.permission.INTERNAL_SYSTEM_WINDOW":[u"dangerous",u"内部系统窗口",u"允许程序打开内部窗口,不对第三方应用程序开放此权限"],
+            "android.permission.INTERNET":[u"dangerous",u"访问网络",u"访问网络连接,u可能产生GPRS流量"],
+            "android.permission.KILL_BACKGROUND_PROCESSES":[u"dangerous",u"结束后台进程",u"允许程序调用killBackgroundProcesses(String).方法结束后台进程"],
+            "android.permission.MANAGE_ACCOUNTS":[u"dangerous",u"管理账户",u"允许程序管理AccountManager中的账户列表"],
+            "android.permission.MANAGE_APP_TOKENS":[u"dangerous",u"管理程序引用",u"管理创建、摧毁、Z轴顺序,仅用于系统"],
+            "android.permission.MTWEAK_USER":[u"dangerous",u"高级权限",u"允许mTweak用户访问高级系统权限"],
+            "android.permission.MTWEAK_FORUM":[u"dangerous",u"社区权限",u"允许使用mTweak社区权限"],
+            "android.permission.MASTER_CLEAR":[u"dangerous",u"软格式化",u"允许程序执行软格式化,删除系统配置信息"],
+            "android.permission.MODIFY_AUDIO_SETTINGS":[u"dangerous",u"修改声音设置",u"修改声音设置信息"],
+            "android.permission.MODIFY_PHONE_STATE":[u"dangerous",u"修改电话状态",u"修改电话状态,如飞行模式,但不包含替换系统拨号器界面"],
+            "android.permission.MOUNT_FORMAT_FILESYSTEMS":[u"dangerous",u"格式化文件系统",u"格式化可移动文件系统,比如格式化清空SD卡"],
+            "android.permission.MOUNT_UNMOUNT_FILESYSTEMS":[u"dangerous",u"挂载文件系统",u"挂载、反挂载外部文件系统"],
+            "android.permission.NFC":[u"dangerous",u"允许NFC通讯",u"允许程序执行NFC近距离通讯操作,用于移动支持"],
+            "android.permission.PERSISTENT_ACTIVITY":[u"dangerous",u"永久Activity",u"创建一个永久的Activity,该功能标记为将来将被移除"],
+            "android.permission.PROCESS_OUTGOING_CALLS":[u"dangerous",u"处理拨出电话",u"允许程序监视,修改或放弃播出电话"],
+            "android.permission.READ_CALENDAR":[u"dangerous",u"读取日程提醒",u"允许程序读取用户的日程信息"],
+            "android.permission.READ_CONTACTS":[u"dangerous",u"读取联系人",u"允许应用访问联系人通讯录信息"],
+            "android.permission.READ_FRAME_BUFFER":[u"dangerous",u"屏幕截图",u"读取帧缓存用于屏幕截图"],
+            "com.android.browser.permission.READ_HISTORY_BOOKMARKS":[u"dangerous",u"读取收藏夹和历史记录",u"读取浏览器收藏夹和历史记录"],
+            "android.permission.READ_INPUT_STATE":[u"dangerous",u"读取输入状态",u"读取当前键的输入状态,仅用于系统"],
+            "android.permission.READ_LOGS":[u"dangerous",u"读取系统日志",u"读取系统底层日志"],
+            "android.permission.READ_PHONE_STATE":[u"dangerous",u"读取电话状态",u"访问电话状态"],
+            "android.permission.READ_SMS":[u"dangerous",u"读取短信内容",u"读取短信内容"],
+            "android.permission.READ_SYNC_SETTINGS":[u"dangerous",u"读取同步设置",u"读取同步设置,读取Google在线同步设置"],
+            "android.permission.READ_SYNC_STATS":[u"dangerous",u"读取同步状态",u"读取同步状态,获得Google在线同步状态"],
+            "android.permission.REBOOT":[u"dangerous",u"重启设备",u"允许程序重新启动设备"],
+            "android.permission.RECEIVE_BOOT_COMPLETED":[u"dangerous",u"开机自动允许",u"允许程序开机自动运行"],
+            "android.permission.RECEIVE_MMS":[u"dangerous",u"接收彩信",u"接收彩信"],
+            "android.permission.RECEIVE_SMS":[u"dangerous",u"接收短信",u"接收短信"],
+            "android.permission.RECEIVE_WAP_PUSH":[u"dangerous",u"接收Wap Push",u"接收WAP PUSH信息"],
+            "android.permission.RECORD_AUDIO":[u"dangerous",u"录音",u"录制声音通过手机或耳机的麦克"],
+            "android.permission.REORDER_TASKS":[u"dangerous",u"排序系统任务",u"重新排序系统Z轴运行中的任务"],
+            "android.permission.RESTART_PACKAGES":[u"dangerous",u"结束系统任务",u"结束任务通过restartPackage(String)方法,该方式将在外来放弃"],
+            "android.permission.SEND_SMS":[u"dangerous",u"发送短信",u"发送短信"],
+            "android.permission.SET_ACTIVITY_WATCHER":[u"dangerous",u"设置Activity观察其",u"设置Activity观察器一般用于monkey测试"],
+            "com.android.alarm.permission.SET_ALARM":[u"dangerous",u"设置闹铃提醒",u"设置闹铃提醒"],
+            "android.permission.SET_ALWAYS_FINISH":[u"dangerous",u"设置总是退出",u"设置程序在后台是否总是退出"],
+            "android.permission.SET_ANIMATION_SCALE":[u"dangerous",u"设置动画缩放",u"设置全局动画缩放"],
+            "android.permission.SET_DEBUG_APP":[u"dangerous",u"设置调试程序",u"设置调试程序,一般用于开发"],
+            "android.permission.SET_ORIENTATION":[u"dangerous",u"设置屏幕方向",u"设置屏幕方向为横屏或标准方式显示,不用于普通应用"],
+            "android.permission.SET_PREFERRED_APPLICATIONS":[u"dangerous",u"设置应用参数",u"设置应用的参数,已不再工作具体查看addPackageToPreferred(String)介绍"],
+            "android.permission.SET_PROCESS_LIMIT":[u"dangerous",u"设置进程限制",u"允许程序设置最大的进程数量的限制"],
+            "android.permission.SET_TIME":[u"dangerous",u"设置系统时间",u"设置系统时间"],
+            "android.permission.SET_TIME_ZONE":[u"dangerous",u"设置系统时区",u"设置系统时区"],
+            "android.permission.SET_WALLPAPER":["dangerous",u"设置桌面壁纸",u"设置桌面壁纸"],
+            "android.permission.SET_WALLPAPER_HINTS":[u"dangerous",u"设置壁纸",u"建议设置壁纸建议"],
+            "android.permission.SIGNAL_PERSISTENT_PROCESSES":[u"dangerous",u"发送永久进程信号",u"发送一个永久的进程信号"],
+            "android.permission.STATUS_BAR":[u"dangerous",u"状态栏控制",u"允许程序打开、关闭、禁用状态栏"],
+            "android.permission.SUBSCRIBED_FEEDS_READ":[u"dangerous",u"访问订阅内容",u"访问订阅信息的数据库"],
+            "android.permission.SUBSCRIBED_FEEDS_WRITE":[u"dangerous",u"写入订阅内容",u"写入或修改订阅内容的数据库"],
+            "android.permission.SYSTEM_ALERT_WINDOW":[u"dangerous",u"显示系统窗口",u"显示系统窗口"],
+            "android.permission.UPDATE_DEVICE_STATS":[u"dangerous",u"更新设备状态",u"更新设备状态"],
+            "android.permission.USE_CREDENTIALS":[u"dangerous",u"使用证书",u"允许程序请求验证从AccountManager"],
+            "android.permission.USE_SIP":[u"dangerous",u"使用SIP视频",u"允许程序使用SIP视频服务"],
+            "android.permission.VIBRATE":[u"dangerous",u"使用振动",u"允许振动"],
+            "android.permission.WAKE_LOCK":[u"dangerous",u"唤醒锁定",u"允许程序在手机屏幕关闭后后台进程仍然运行"],
+            "android.permission.WRITE_APN_SETTINGS":[u"dangerous",u"写入GPRS接入点设置",u"写入网络GPRS接入点设置"],
+            "android.permission.WRITE_CALENDAR":[u"dangerous",u"写入日程提醒",u"写入日程,但不可读取"],
+            "android.permission.WRITE_CONTACTS":[u"dangerous",u"写入联系人",u"写入联系人,但不可读取"],
+            "android.permission.WRITE_EXTERNAL_STORAGE":[u"dangerous",u"写入外部存储",u"允许程序写入外部存储,如SD卡上写文件"],
+            "android.permission.WRITE_GSERVICES":[u"dangerous",u"写入Google地图数据",u"允许程序写入Google Map服务数据"],
+            "com.android.browser.permission.WRITE_HISTORY_BOOKMARKS":[u"dangerous",u"写入收藏夹和历史记录",u"写入浏览器历史记录或收藏夹,但不可读取"],
+            "android.permission.WRITE_SECURE_SETTINGS":[u"dangerous",u"读写系统敏感设置",u"允许程序读写系统安全敏感的设置项"],
+            "android.permission.WRITE_SETTINGS":[u"dangerous",u"读写系统设置",u"允许读写系统设置项"],
+            "android.permission.WRITE_SMS":[u"dangerous",u"编写短信",u"允许编写短信"]
+}
+        self.group={
+            "android.permission-group.CONTACTS":[
+                "android.permission.WRITE_CONTACTS",
+                "android.permission.GET_ACCOUNTS",
+                "android.permission.READ_CONTACTS",
+            ],
+            "android.permission-group.PHONE":[
+                "android.permission.READ_CALL_LOG",
+                "android.permission.READ_PHONE_STATE",
+                "android.permission.CALL_PHONE",
+                "android.permission.WRITE_CALL_LOG",
+                "android.permission.USE_SIP",
+                "android.permission.PROCESS_OUTGOING_CALLS",
+                "com.android.voicemail.permission.ADD_VOICEMAIL",
+            ],
+            "android.permission-group.CALENDAR":[
+                "android.permission.READ_CALENDAR",
+                "android.permission.WRITE_CALENDAR",
+            ],
+            "android.permission-group.CAMERA":[
+                "android.permission.CAMERA",
+            ],
+            "android.permission-group.SENSORS":[
+                "android.permission.BODY_SENSORS",
+            ],
+            "android.permission-group.LOCATION":[
+                "android.permission.ACCESS_FINE_LOCATION",
+                "android.permission.ACCESS_COARSE_LOCATION",
+            ],
+            "android.permission-group.STORAGE":[
+                "android.permission.READ_EXTERNAL_STORAGE",
+                "android.permission.WRITE_EXTERNAL_STORAGE",
+            ],
+            "android.permission-group.MICROPHONE":[
+                "android.permission.RECORD_AUDIO",
+            ],
+            "android.permission-group.SMS":[
+                "android.permission.READ_SMS",
+                "android.permission.RECEIVE_WAP_PUSH",
+                "android.permission.RECEIVE_MMS",
+                "android.permission.RECEIVE_SMS",
+                "android.permission.SEND_SMS",
+                "android.permission.READ_CELL_BROADCASTS",
+            ]
+}
+
+
+    '''
+    分析入口
+    '''
+    def analysis(self,permissionList):
+        dangerous_permission={}
+        for permission in permissionList:
+                print(permission)
+                if permission in self.dvmPermission.keys():
+                    self.dvmPermission.get(permission)
+                    dangerous_permission[permission]=self.dvmPermission[permission]
+        return dangerous_permission
+if __name__ == '__main__':
+    pa=permissionAnalyzer()
+    for permission,desc in pa.dvmPermission.items():
+        print("permission:%s"%permission)
+        print("权限名称:%s"%desc[0])
+        print("权限说明:%s"%desc[1])
+
+    for gname,desc in pa.group.items():
+        print("组名:%s"%gname)
+        print("权限列表:")
+        for permission in desc:
+            print("权限名称:%s"%permission)
+    pa.analysis()

@@ -1,0 +1,24 @@
+
+			<!DOCTYPE html>
+			<html lang="zh-cn">
+			<head>
+			<title>ApkVulCheck-My Application-风险检测报告</title>
+			<meta charset="utf-8" />	
+			</head>
+			<body>
+			<h1 style="text-align:center">ApkVulCheck-My Application-风险检测报告</h1>
+			<hr />
+			<table border="1"><tr><th>Advertisement</th><td></td></tr><tr><th>thirdpartPayAPI</th><td></td></tr><tr><th>nastySDKs</th><td></td></tr><tr><th>otherSDKs</th><td></td></tr><tr><th>packageName</th><td>fridatest.test.com.myapplication</td></tr><tr><th>version</th><td>1.0</td></tr><tr><th>size</th><td>1009.26953125KB</td></tr><tr><th>from</th><td>None</td></tr><tr><th>time</th><td>2020-07-18 17:31:06.457255</td></tr><tr><th>md5</th><td>0899c95787a8533ec7dc826d0ebf28a0</td></tr><tr><th>sha1</th><td>ba72d1c1cc5507ab8f2d9ec326ffd5ee7729288a</td></tr><tr><th>sha256</th><td>c99326b9c3623265c2ea6c40805d99114afcbb044703cad5821dae2d67ede987</td></tr><tr><th>permission</th><td></td></tr><tr><th>activity</th><td><ul><li>fridatest.test.com.myapplication.MainActivity</li></ul></td></tr><tr><th>service</th><td></td></tr><tr><th>provider</th><td></td></tr><tr><th>receiver</th><td></td></tr><tr><th>developer</th><td>default</td></tr><tr><th>classify</th><td>default</td></tr><tr><th>apkname</th><td>My Application</td></tr><tr><th>shelltype</th><td>未加壳</td></tr><tr><th>donwloads</th><td>default</td></tr><tr><th>history</th><td>default</td></tr><tr><th>taskid</th><td>70a1a5995e407c31dd80a105f296eb1e91788</td></tr><tr><th>target</th><td>./workspace/apk/app-release.apk</td></tr><tr><th>starttime</th><td>2020-07-18 17:31:05</td></tr><tr><th>endtime</th><td>2020-07-18 17:31:06</td></tr><tr><th>ipv4</th><td></td></tr><tr><th>ipv6</th><td></td></tr><tr><th>sensitiveAPI</th><td><table border="1"><thead><tr><th>0</th><th>1</th></tr></thead><tbody><tr><td><table border="1"><tr><th>sensitiveAPI</th><td>Landroid/telephony/TelephonyManager;-&gt;getDeviceId()Ljava/lang/String;</td></tr><tr><th>desc</th><td>获取设备ID信息</td></tr><tr><th>linecount</th><td>69</td></tr><tr><th>path</th><td>/tmp/hades/result/app-release56889/fridatest/test/com/myapplication/MainActivity.smali</td></tr></table></td><td><table border="1"><tr><th>sensitiveAPI</th><td>Landroid/net/wifi/WifiInfo;-&gt;getSSID()Ljava/lang/String;</td></tr><tr><th>desc</th><td>获取手机SSID</td></tr><tr><th>linecount</th><td>126</td></tr><tr><th>path</th><td>/tmp/hades/result/app-release56889/fridatest/test/com/myapplication/MainActivity.smali</td></tr></table></td></tr></tbody></table></td></tr><tr><th>urls</th><td></td></tr><tr><th>emails</th><td></td></tr><tr><th>flaws</th><td><table border="1"><thead><tr><th>0</th><th>1</th></tr></thead><tbody><tr><td><table border="1"><tr><th>flawsName</th><td>日志泄漏风险</td></tr><tr><th>desc</th><td>
+使用System.out.print和System.out.println输出打印日志信息，容易泄漏敏感信息
+        </td></tr><tr><th>suggest</th><td>
+建议删除所有使用System.out.print和System.out.println输出打印日志信息的代码        
+        </td></tr><tr><th>linecount</th><td>37</td></tr><tr><th>path</th><td>/tmp/hades/result/app-release56889/fridatest/test/com/myapplication/MainActivity.smali</td></tr></table></td><td><table border="1"><tr><th>flawsName</th><td>SharedPreferences任意读写</td></tr><tr><th>desc</th><td>
+SharedPreferences是Android平台上一个轻量级的存储类，用来保存应用的一些常用配置，比如Activity状态，Activity暂停时，将此activity的状态保存到SharedPereferences中；当Activity重载，系统回调方法onSaveInstanceState时，再从SharedPreferences中将值取出。
+关键函数getsharedpreferences(string name,int mode)        
+        </td></tr><tr><th>suggest</th><td>
+1、避免使用MODE_WORLD_READABLE和MODE_WORLD_WRITEABLE模式创建Shared Preferences文件
+2、避免把密码等敏感数据信息明文存放在Shared Preferences文件中        
+        </td></tr><tr><th>linecount</th><td>82</td></tr><tr><th>path</th><td>/tmp/hades/result/app-release56889/fridatest/test/com/myapplication/MainActivity.smali</td></tr></table></td></tr></tbody></table></td></tr></table>
+			<div>2020 ApkVulCheck,inc.</div>
+			</body>
+			
