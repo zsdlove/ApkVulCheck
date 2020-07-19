@@ -36,10 +36,10 @@
 命令行参数：
 args:
 	--taskpath [apkpath]
-	--output [resultpath]
+	--output json/html
 
 examples:
-	python --taskpath [path to apk] --output [path to output]
+	python --taskpath [path to apk] --output json
 
 0x3 报告输出
 报告输出路径在report下
