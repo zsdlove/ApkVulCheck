@@ -39,7 +39,7 @@ args:
 	--output json/html
 
 examples:
-	python --taskpath [path to apk] --output json
+	python AndroidCodeCheck.py --taskpath [path to apk] --output json
 
 0x3 报告输出
 报告输出路径在report下
