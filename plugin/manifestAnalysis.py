@@ -34,15 +34,15 @@ class componentcheck:
 	def getUsesPermission(self, node):
 		if node.nodeName == "uses-permission":
 			self.permissionList.append(node.getAttribute('android:name'))
-			logging.info("- [VulScanEngine] " + "申请的权限名为：" + node.getAttribute('android:name').encode("utf-8"))
+			logging.info("- [VulScanEngine] " + "申请的权限名为：" + str(node.getAttribute('android:name').encode("utf-8")))
 	# return node.getAttribute('android:name')
 	#
 	# 获得应用自定义权限：权限名，保护级别
 	# @param node xmlnode
 	def getPermission(self, node):
 		if node.nodeName == "permission":
-			logging.info("- [VulScanEngine] " + "自定义权限名：" + node.getAttribute('android:name').encode("utf-8"))
-			logging.info("- [VulScanEngine] " + "保护级别为：" + node.getAttribute('android:protectionLevel').encode("utf-8"))
+			logging.info("- [VulScanEngine] " + "自定义权限名：" + str(node.getAttribute('android:name').encode("utf-8")))
+			logging.info("- [VulScanEngine] " + "保护级别为：" + str(node.getAttribute('android:protectionLevel').encode("utf-8")))
 
 	# return node.getAttribute('android:name')
 	#

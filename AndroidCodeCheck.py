@@ -163,7 +163,7 @@ class apkAnalysis():
 			crawlresult=aic.Micrawler(packageName)
 		developer=crawlresult.get('developer')
 		classify=crawlresult.get('classify')
-		apkname=os.popen("lib/aapt2 dump badging %s |grep application-label:" % filepath).read().replace("\n","").split(":")[1].replace("'","")
+		apkname=os.popen("lib/aapt2 dump badging %s |grep application-label:" % filepath).read().replace("\n","").split(":")[0].replace("'","")
 		donwloads=crawlresult.get('downloads')
 		history=crawlresult.get('history')
 		apkfrom=crawlresult.get('from')
